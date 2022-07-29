@@ -39,7 +39,7 @@ export default {
       title : '',
       type: 'Movie',
       number: 10,
-      years: '',
+      year: '',
       filters: [
         {
           name: 'type',
