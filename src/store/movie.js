@@ -7,8 +7,9 @@ export default {
   //data!
   state: () => ({
     movies: [],
-    message: '',
-    loading: false
+    message: 'Search for the movie title!',
+    loading: false,
+    theMovie: {}
   }),
   //computed!
   getters: {},
@@ -30,6 +31,15 @@ export default {
   //비동기임
     actions: {
       async searchMovies({state, commit}, payload) {
+        if (state.loading) {
+          return 
+        }
+
+        commit('updateState', {
+          message: '',
+          loading: true
+        })
+
         try {
           const res = await _fetchMovie({
             ...payload,
@@ -39,13 +49,9 @@ export default {
           commit('updateState', {
             movies: _uniqBy(Search, 'imdbID')
           })
-  
-          console.log(totalResults)
-  
+    
           const total = parseInt(totalResults, 10)
           const pageLength = Math.ceil(total / 10)
-          
-          console.log(pageLength)
   
           if (pageLength > 1) {
             for (let page = 2; page <= pageLength; page += 1) {
@@ -69,17 +75,50 @@ export default {
             movies: [],
             message
           })
+        } finally {
+          commit('updateState', {
+            loading: false
+          })
         }
         
+      },
+
+      async seerchMovieWithId ({state, commit}, payload) {
+        if (state.loading) return 
+
+        commit('updateState', {
+          theMovie: {},
+          loading : true
+        })
+
+        try {
+          const res = await _fetchMovie(payload)
+          console.log(res.data)
+          commit('updateState', {
+            theMovie: res.data
+          })
+
+        } catch (error) {
+            commit('updateState', {
+              theMovie: {}
+            })
+          } finally {
+            commit('updateState', {
+              loading: false
+            })
+          }
       }
     }
 }
 
 
 function _fetchMovie(payload) {
-  const { title, type, year, page } = payload
+  const { title, type, year, page, id } = payload
   const OMDB_API_KEY = '7035c60c'
-  const url = `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${title}&type=${type}&y=${year}&page=${page}`
+
+  const url = id 
+  ? `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${id}` 
+  : `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${title}&type=${type}&y=${year}&page=${page}`
 
 
   return new Promise ((resolve, reject) => {
